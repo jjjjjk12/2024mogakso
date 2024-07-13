@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="container">
+    <div>
+        <p th:text="${post.postBoard} + ' ' + ${post.member.name}"></p>
+        <h1 th:text="${post.title}"></h1>
+        <p th:text="${post.textBody}"></p>
+    </div>
+    <form th:action="@{|/posts/${post.postNum}|}" method="post">
+        <input type="submit" id="delete" name="attr" value="삭제">
+        <input type="submit" id="edit" name="attr" value="수정">
+    </form>
+    <div>
+        <h3>댓글</h3>
+           <div  th:each="comment:${comments}">
+               <form th:action="@{|/posts/${post.postNum}|}" method="post">
+                   <input type="hidden" name="commentNum" th:value="${comment.commentNum}">
+                   <div th:if="${comment.isEdit} == true">
+                       <label for="commentEdit"></label>
+                       <input type="text" id="commentEdit" name="textBody" th:value="${comment.commentBody}" required>
+                       <input type="submit" id="saveComment" name="attrComment" value="저장">
+                   </div>
+                   <div th:if="${comment.isEdit} == false">
+                       <p th:text="${comment.member.name} + ' : ' + ${comment.commentBody}"></p>
+                       <input type="submit" id="deleteComment" name="attrComment" value="삭제">
+                       <input type="submit" id="editComment" name="attrComment" value="수정">
+                   </div>
+               </form>
+           </div>
+        <form th:action="@{|/posts/${post.postNum}|}" method="post">
+            <label for="comment"></label>
+            <input type="text" id="comment" name="comment" placeholder="댓글을 입력하세요" required>
+            <button type="submit">등록</button>
+        </form>
+    </div>
+</div> <!-- /container -->
+</body>
+</html>

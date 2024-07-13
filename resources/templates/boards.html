@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="container">
+    <div>
+        <table>
+            <thead>
+            <tr>
+                <th>게시판</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="board : ${boards}">
+                <td><a href="/" th:href="@{|/posts?board=${board.name}|}" th:text="${board.name}"></a></td>
+            </tr>
+            </tbody>
+        </table>
+        <form action="/list" method="post">
+            <input type="submit" id="edit" name="edit" value="게시판 수정">
+        </form>
+    </div>
+</div> <!-- /container -->
+</body>
+</html>

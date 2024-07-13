@@ -1,0 +1,19 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="container">
+    <form action="/list" method="post">
+        <div class="form-group" th:each="board : ${boards}">
+            <label for="board" th:text="${board.name}"></label>
+            <input type="checkbox" id="board" name="board" th:value="${board.name}">
+        </div>
+        <button type="submit" name="attr" value="삭제">삭제</button>
+        <div class="form-group">
+            <label for="newBoard"></label>
+            <input type="text" id="newBoard" name="newBoard" placeholder="추가할 게시판을 입력하세요">
+        </div>
+        <button type="submit" name="attr" value="추가">추가</button>
+    </form>
+</div> <!-- /container -->
+</body>
+</html>

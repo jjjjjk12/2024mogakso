@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="container">
+    <form action="/login" method="post">
+        <p th:if="${wrong} == true" >잘못된 아이디거나 비밀번호입니다</p>
+        <div class="form-group">
+            <label for="id"></label>
+            <input type="text" id="id" name="id" placeholder="ID" required>
+        </div>
+        <div class="form-group">
+            <label for="pw"></label>
+            <input type="password" id="pw" name="pw" placeholder="PASSWORD" required>
+        </div>
+        <button type="submit">로그인</button>
+    </form>
+    <a href="/register">회원가입</a>
+</div> <!-- /container -->
+</body>
+</html>
