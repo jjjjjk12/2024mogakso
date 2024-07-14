@@ -3,6 +3,7 @@ package com.ajoudev.practice.controller;
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.service.CommentService;
 import com.ajoudev.practice.service.MemberService;
+import com.ajoudev.practice.service.PostBoardService;
 import com.ajoudev.practice.service.PostService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -16,11 +17,13 @@ public class MemberController {
     private final MemberService memberService;
     private final PostService postService;
     private final CommentService commentService;
+    private final PostBoardService postBoardService;
 
-    public MemberController(MemberService memberService, PostService postService, CommentService commentService) {
+    public MemberController(MemberService memberService, PostService postService, CommentService commentService, PostBoardService postBoardService) {
         this.memberService = memberService;
         this.postService = postService;
         this.commentService = commentService;
+        this.postBoardService = postBoardService;
     }
 
     @GetMapping("/login")
@@ -80,6 +83,7 @@ public class MemberController {
 
     public String editView(HttpSession session, Model model) {
         Member member = memberService.findOne((String) session.getAttribute("id")).get();
+        model.addAttribute("boards", postBoardService.findBoards());
         model.addAttribute("member", member);
         return "editMember";
     }
@@ -95,52 +99,66 @@ public class MemberController {
     }
 
     @GetMapping("/user/list")
-    public String viewMembers(Model model) {
+    public String viewMembers(Model model, HttpSession session) {
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         model.addAttribute("members", memberService.findAll());
+        model.addAttribute("boards", postBoardService.findBoards());
         return "userList";
     }
-
+/*
     @GetMapping("/user")
-    public String viewMember(@RequestParam(required = false) String user, Model model) {
-        if(user == null) return "redirect:/user/list";
+    public String viewMember(@RequestParam(required = false) String user, Model model, HttpSession session) {
+        user = user == null ? (String) session.getAttribute("id") : user;
         Member member = memberService.findOne(user).get();
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
+        model.addAttribute("user", member);
+        model.addAttribute("boards", postBoardService.findBoards());
         model.addAttribute("posts", postService.findPosts(member));
         model.addAttribute("comments", commentService.findComments(member));
-        return "userHistory";
+        return "userInfo";
     }
-
-    @GetMapping("/edit-user")
-    public String viewEditMember(Model model, HttpSession session) {
+*/
+    @GetMapping("/user")
+    public String viewEditMember(Model model, @RequestParam(required = false) String user, HttpSession session) {
         Member member = memberService.findOne((String) session.getAttribute("id")).get();
+        user = user == null ? (String) session.getAttribute("id") : user;
+        Member u = memberService.findOne(user).get();
         boolean isEdit = false;
         boolean isPost = true;
         model.addAttribute("isEdit", isEdit);
         model.addAttribute("isPost", isPost);
         model.addAttribute("member", member);
-        model.addAttribute("posts", postService.findPosts(member));
+        model.addAttribute("user", u);
+        model.addAttribute("posts", postService.findPosts(u));
+        model.addAttribute("boards", postBoardService.findBoards());
         return "userInfo";
     }
 
-    @PostMapping("/edit-user")
+    @PostMapping("/user")
     public String editMember(Model model, HttpSession session,
                              @RequestParam(required = false) String attr,
                              @RequestParam(required = false) String pw,
                              @RequestParam(required = false) String name,
+                             @RequestParam(required = false) String user,
                              @RequestParam(required = false) String list) {
         Member member = memberService.findOne((String) session.getAttribute("id")).get();
+        user = user == null ? (String) session.getAttribute("id") : user;
+        Member u = memberService.findOne(user).get();
         boolean isEdit = false;
         boolean isPost = true;
         model.addAttribute("member", member);
         model.addAttribute("isEdit", isEdit);
         model.addAttribute("isPost", isPost);
+        model.addAttribute("user", u);
+        model.addAttribute("boards", postBoardService.findBoards());
 
 
         if(list == null || list.equals("게시글")) {
-            model.addAttribute("posts", postService.findPosts(member));
+            model.addAttribute("posts", postService.findPosts(u));
         }
         else if (list.equals("댓글")){
             isPost = false;
-            model.addAttribute("comments", commentService.findComments(member));
+            model.addAttribute("comments", commentService.findComments(u));
         }
 
         if (attr != null && attr.equals("수정")) {

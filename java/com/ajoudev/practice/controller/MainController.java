@@ -38,10 +38,13 @@ public class MainController {
     }
 
     @GetMapping("/posts")
-    String posts(@RequestParam(required = false) String board, Model model) {
+    String posts(@RequestParam(required = false) String board, Model model, HttpSession session) {
         board = board == null ? "기본" : board;
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
+        model.addAttribute("boards", postBoardService.findBoards());
+        model.addAttribute("board", postBoardService.findOne(board).get());
         model.addAttribute("posts", postService.findPosts(board));
-        return "posts";
+        return "boards";
     }
 
     @GetMapping("/posts/new")
@@ -67,10 +70,12 @@ public class MainController {
     }
 
     @GetMapping("/posts/{postNum}")
-    String viewPost(@PathVariable Long postNum, Model model) {
+    String viewPost(@PathVariable Long postNum, Model model, HttpSession session) {
         Post post = postService.findOne(postNum).isPresent() ? postService.findOne(postNum).get() : null;
         if (post == null) return "redirect:/list";
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         model.addAttribute("post", post);
+        model.addAttribute("boards", postBoardService.findBoards());
         if (!commentService.findComments(post).isEmpty()) model.addAttribute("comments", commentService.findComments(post));
         return "viewPost";
     }
@@ -87,7 +92,8 @@ public class MainController {
                       HttpSession session,
                       Model model) {
         Post post = postService.findOne(postNum).isPresent() ? postService.findOne(postNum).get() : null;
-
+        model.addAttribute("boards", postBoardService.findBoards());
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         if (post != null) {
             List<Comment> comments = commentService.findComments(post);
             model.addAttribute("comments", comments);
@@ -152,20 +158,23 @@ public class MainController {
     }
 
     @GetMapping("/list")
-    String viewBoard(Model model) {
+    String viewBoard(Model model, HttpSession session) {
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         model.addAttribute("boards", postBoardService.findBoards());
-        return "boards";
+        return "editBoard";
     }
 
     @PostMapping("/list")
     String editBoard(@RequestParam(required = false) String attr,
-                     @RequestParam(required = false) String newBoard,@RequestParam(required = false) String[] board,Model model) {
+                     @RequestParam(required = false) String newBoard,
+                     @RequestParam(required = false) String[] board,HttpSession session,Model model) {
         if(attr != null && attr.equals("추가")) {
             postBoardService.addBoard(newBoard);
         }
         else if(attr != null && attr.equals("삭제")) {
             postBoardService.deleteBoard(board);
         }
+        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         model.addAttribute("boards", postBoardService.findBoards());
         return "editBoard";
     }
