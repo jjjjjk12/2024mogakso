@@ -1,11 +1,16 @@
 package com.ajoudev.practice.controller;
 
+import com.ajoudev.practice.Comment;
 import com.ajoudev.practice.Member;
+import com.ajoudev.practice.Post;
 import com.ajoudev.practice.service.CommentService;
 import com.ajoudev.practice.service.MemberService;
 import com.ajoudev.practice.service.PostBoardService;
 import com.ajoudev.practice.service.PostService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -99,10 +104,14 @@ public class MemberController {
     }
 
     @GetMapping("/user/list")
-    public String viewMembers(Model model, HttpSession session) {
+    public String viewMembers(Model model, HttpSession session,@PageableDefault(size = 15) Pageable pageable) {
+        Page<Member> members = memberService.findAll(pageable);
         model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
-        model.addAttribute("members", memberService.findAll());
+        model.addAttribute("members", members.get());
         model.addAttribute("boards", postBoardService.findBoards());
+        model.addAttribute("hasPrevious",members.hasPrevious());
+        model.addAttribute("hasNext",members.hasNext());
+        model.addAttribute("page",members.getNumber());
         return "userList";
     }
 /*
@@ -119,18 +128,22 @@ public class MemberController {
     }
 */
     @GetMapping("/user")
-    public String viewEditMember(Model model, @RequestParam(required = false) String user, HttpSession session) {
+    public String viewEditMember(Model model, @RequestParam(required = false) String user, HttpSession session,@PageableDefault Pageable pageable) {
         Member member = memberService.findOne((String) session.getAttribute("id")).get();
         user = user == null ? (String) session.getAttribute("id") : user;
         Member u = memberService.findOne(user).get();
+        Page<Post> posts = postService.findPosts(u, pageable);
         boolean isEdit = false;
         boolean isPost = true;
         model.addAttribute("isEdit", isEdit);
         model.addAttribute("isPost", isPost);
         model.addAttribute("member", member);
         model.addAttribute("user", u);
-        model.addAttribute("posts", postService.findPosts(u));
+        model.addAttribute("posts", posts.get());
+        model.addAttribute("page", posts.getNumber());
         model.addAttribute("boards", postBoardService.findBoards());
+        model.addAttribute("hasPrevious",posts.hasPrevious());
+        model.addAttribute("hasNext",posts.hasNext());
         return "userInfo";
     }
 
@@ -140,7 +153,8 @@ public class MemberController {
                              @RequestParam(required = false) String pw,
                              @RequestParam(required = false) String name,
                              @RequestParam(required = false) String user,
-                             @RequestParam(required = false) String list) {
+                             @RequestParam(required = false) String list,
+                             @PageableDefault Pageable pageable) {
         Member member = memberService.findOne((String) session.getAttribute("id")).get();
         user = user == null ? (String) session.getAttribute("id") : user;
         Member u = memberService.findOne(user).get();
@@ -154,11 +168,19 @@ public class MemberController {
 
 
         if(list == null || list.equals("게시글")) {
-            model.addAttribute("posts", postService.findPosts(u));
+            Page<Post> posts = postService.findPosts(u,pageable);
+            model.addAttribute("posts", posts.get());
+            model.addAttribute("hasPrevious",posts.hasPrevious());
+            model.addAttribute("hasNext",posts.hasNext());
+            model.addAttribute("page", posts.getNumber());
         }
         else if (list.equals("댓글")){
             isPost = false;
-            model.addAttribute("comments", commentService.findComments(u));
+            Page<Comment> comments = commentService.findComments(u, pageable);
+            model.addAttribute("comments", comments.get());
+            model.addAttribute("hasPrevious",comments.hasPrevious());
+            model.addAttribute("hasNext",comments.hasNext());
+            model.addAttribute("page", comments.getNumber());
         }
 
         if (attr != null && attr.equals("수정")) {

@@ -2,6 +2,9 @@ package com.ajoudev.practice.service;
 
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.repository.MemberRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +63,9 @@ public class MemberService {
 
     public List<Member> findAll() {
         return memberRepository.findAll();
+    }
+    public Page<Member> findAll(Pageable pageable) {
+        return memberRepository.findAll(PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
     }
 
     private String getSalt(){

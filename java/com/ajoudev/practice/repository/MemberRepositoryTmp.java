@@ -1,3 +1,4 @@
+/*
 package com.ajoudev.practice.repository;
 
 import com.ajoudev.practice.Member;
@@ -30,3 +31,4 @@ public class MemberRepositoryTmp implements MemberRepository{
         return new ArrayList<>(store.values());
     }
 }
+*/

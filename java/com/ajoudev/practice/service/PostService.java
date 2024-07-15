@@ -3,7 +3,12 @@ package com.ajoudev.practice.service;
 import com.ajoudev.practice.Comment;
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.Post;
+import com.ajoudev.practice.repository.PostBoardRepository;
 import com.ajoudev.practice.repository.PostRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +19,11 @@ import java.util.*;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostBoardRepository postBoardRepository;
     private final CommentService commentService;
-    public PostService(PostRepository postRepository, CommentService commentService) {
+    public PostService(PostRepository postRepository, PostBoardRepository postBoardRepository, CommentService commentService) {
         this.postRepository = postRepository;
+        this.postBoardRepository = postBoardRepository;
         this.commentService = commentService;
     }
 
@@ -42,10 +49,20 @@ public class PostService {
         return postRepository.findByBoard(board);
     }
 
+    public Page<Post> findPosts(String board, Pageable pageable) {
+        return postRepository.findByPostBoard(postBoardRepository.findByName(board).get(), PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.Direction.DESC, "postNum"));
+    }
+
     public List<Post> findPosts(Member member) {
 
         return postRepository.findAll().stream().
                 filter(s -> s.getMember().equals(member)).toList();
+
+    }
+
+    public Page<Post> findPosts(Member member, Pageable pageable) {
+
+        return postRepository.findByMember(member, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.Direction.DESC, "postNum"));
 
     }
 

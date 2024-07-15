@@ -1,6 +1,9 @@
+/*
 package com.ajoudev.practice.repository;
 
 import com.ajoudev.practice.Post;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -53,4 +56,10 @@ public class PostRepositoryTmp implements PostRepository{
                 .filter(s -> s.getPostBoard().getName().equals(name))
                 .toList();
     }
+
+    @Override
+    public Page<Post> findByName(String name, Pageable pageable) {
+        return null;
+    }
 }
+*/

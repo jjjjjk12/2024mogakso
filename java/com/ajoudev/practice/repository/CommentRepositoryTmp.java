@@ -1,3 +1,4 @@
+/*
 package com.ajoudev.practice.repository;
 
 import com.ajoudev.practice.Comment;
@@ -40,3 +41,4 @@ public class CommentRepositoryTmp implements CommentRepository{
         return new ArrayList<>(store.values());
     }
 }
+*/

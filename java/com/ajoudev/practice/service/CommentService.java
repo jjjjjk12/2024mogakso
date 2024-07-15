@@ -4,6 +4,10 @@ import com.ajoudev.practice.Comment;
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.Post;
 import com.ajoudev.practice.repository.CommentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +37,10 @@ public class CommentService {
     public List<Comment> findComments(Member member) {
         return commentRepository.findAll().stream().
                 filter(s -> s.getMember().equals(member)).toList();
+    }
+
+    public Page<Comment> findComments(Member member, Pageable pageable) {
+        return commentRepository.findByMember(member, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.Direction.DESC, "commentNum"));
     }
 
     public Optional<Comment> findOne(Long num) {

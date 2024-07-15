@@ -8,6 +8,9 @@ import com.ajoudev.practice.service.MemberService;
 import com.ajoudev.practice.service.PostBoardService;
 import com.ajoudev.practice.service.PostService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,24 +37,30 @@ public class MainController {
         String id = (String) session.getAttribute("id");
         Member member = memberService.findOne(id).get();
         model.addAttribute("member", member);
-        return "home";
+        return "redirect:/posts";
     }
 
     @GetMapping("/posts")
-    String posts(@RequestParam(required = false) String board, Model model, HttpSession session) {
+    String posts(@RequestParam(required = false) String board, Model model, HttpSession session, @PageableDefault(page=0, size = 10)Pageable pageable) {
         board = board == null ? "기본" : board;
+        Page<Post> posts = postService.findPosts(board, pageable);
         model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         model.addAttribute("boards", postBoardService.findBoards());
         model.addAttribute("board", postBoardService.findOne(board).get());
-        model.addAttribute("posts", postService.findPosts(board));
+        model.addAttribute("posts", posts);
+        model.addAttribute("page", posts.getNumber());
+        model.addAttribute("hasNext",posts.hasNext());
+        model.addAttribute("hasPrevious",posts.hasPrevious());
+
         return "boards";
     }
 
     @GetMapping("/posts/new")
-    String postsNew(Model model, HttpSession session) {
+    String postsNew(Model model, HttpSession session, @RequestParam(required = false) String board) {
         String id = (String) session.getAttribute("id");
         model.addAttribute("member", memberService.findOne(id).get());
         model.addAttribute("boards", postBoardService.findBoards());
+        model.addAttribute("pb", board);
         return "createNewForm";
     }
     @PostMapping("/posts/new")
@@ -107,6 +116,7 @@ public class MainController {
                 postService.deletePost(post);
             else if(attr.equals("수정")) {
                 model.addAttribute("post", post);
+                model.addAttribute("pb", post.getPostBoard().getName());
                 model.addAttribute("boards", postBoardService.findBoards());
                 return "editForm";
             }
