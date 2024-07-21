@@ -14,11 +14,13 @@ import lombok.NoArgsConstructor;
 public class Member {
 
 
-    String name;
+    private String name;
     @Id
     @Column(unique = true)
     private String id;
-    String password;
-    String salt;
-    boolean admin;
+    private String password;
+    private String salt;
+    private boolean admin;
+    private Image image;
+
 }

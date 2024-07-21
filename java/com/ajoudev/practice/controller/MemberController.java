@@ -1,6 +1,7 @@
 package com.ajoudev.practice.controller;
 
 import com.ajoudev.practice.Comment;
+import com.ajoudev.practice.Image;
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.Post;
 import com.ajoudev.practice.service.CommentService;
@@ -16,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 public class MemberController {
@@ -154,6 +156,7 @@ public class MemberController {
                              @RequestParam(required = false) String name,
                              @RequestParam(required = false) String user,
                              @RequestParam(required = false) String list,
+                             @RequestParam(required = false) MultipartFile file,
                              @PageableDefault Pageable pageable) {
         Member member = memberService.findOne((String) session.getAttribute("id")).get();
         user = user == null ? (String) session.getAttribute("id") : user;
@@ -188,6 +191,16 @@ public class MemberController {
         }
         else if (attr != null && attr.equals("저장")) {
             Member replace = new Member();
+            Image image = null;
+            try {
+                if (file != null) {
+                    image = new Image(file.getOriginalFilename(), file.getBytes(), file.getContentType());
+                    System.out.println("test");
+                }
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            replace.setImage(image);
             replace.setName(name);
             replace.setPassword(pw);
             Member origin = memberService.findOne((String) session.getAttribute("id")).get();

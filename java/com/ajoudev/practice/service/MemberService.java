@@ -41,6 +41,7 @@ public class MemberService {
     }
 
     public void editMember(Member origin, Member replace) {
+        if (replace.getImage() != null) origin.setImage(replace.getImage());
         origin.setName(replace.getName());
         origin.setSalt(getSalt());
         origin.setPassword(sha256(replace.getPassword(), origin.getSalt()));
