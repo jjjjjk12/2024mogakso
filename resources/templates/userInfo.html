@@ -81,7 +81,7 @@
                 <div class="row my-3 gx-2" th:if="${isEdit} == true">
                     <label for="image" class="col-form-label col-lg-2 text-center fw-bold">이미지</label>
                     <div class="col-lg-4">
-                        <input type="file" name="file" id="image" class="form-control form-control-sm" th:disabled="${isEdit} == false">
+                        <input type="file" name="image" id="image" class="form-control form-control-sm" th:disabled="${isEdit} == false">
                     </div>
                 </div>
             </div>
@@ -105,7 +105,7 @@
         </form>
         <div th:if="${isPost} == true">
             <ul class="list-unstyled">
-                <li class="border-bottom border-dark-subtle p-2" th:each="post:${posts}">
+                <li class="border-bottom border-dark-subtle p-2" th:each="post:${page.posts}">
                     <a th:href="@{|/posts/${post.postNum}|}" class="link-dark link-offset-1-hover link-opacity-75-hover py-2 border-top border-warning">
                         <div class="h5 fw-bold text-truncate" th:text="${post.title}">
 
@@ -119,7 +119,7 @@
 
         <div th:if="${isPost} == false">
             <ul class="list-unstyled">
-                <li class="border-bottom border-dark-subtle p-2" th:each="comment:${comments}">
+                <li class="border-bottom border-dark-subtle p-2" th:each="comment:${page.comments}">
                     <a th:href="@{|/posts/${comment.post.postNum}|}" class="link-dark link-offset-1-hover link-opacity-75-hover py-2 border-top border-warning">
                         <div class="h5 fw-bold text-truncate" th:text="${comment.post.title}">
 
@@ -136,28 +136,28 @@
 <div class="d-flex justify-content-center">
     <nav aria-label="Page nav">
         <ul class="pagination page-black">
-            <li class="page-item" th:classappend="${hasPrevious} == false ? 'disabled' : ''">
-                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page}|}">
+            <li class="page-item" th:classappend="${page.hasPrevious} == false ? 'disabled' : ''">
+                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page.page}|}">
                     <span>&laquo;</span>
                 </a>
             </li>
             <li class="page-item">
-                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page}|}" th:text="${page}" th:if="${hasPrevious} == true">
+                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page.page}|}" th:text="${page.page}" th:if="${page.hasPrevious} == true">
                     1
                 </a>
             </li>
             <li class="page-item">
-                <a href="" class="page-link active" th:href="@{|/user?user=${user.id}&page=${page + 1}|}" th:text="${page + 1}">
+                <a href="" class="page-link active" th:href="@{|/user?user=${user.id}&page=${page.page + 1}|}" th:text="${page.page + 1}">
                     1
                 </a>
             </li>
             <li class="page-item">
-                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page + 2}|}" th:text="${page + 2}" th:if="${hasNext} == true">
+                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page.page + 2}|}" th:text="${page.page + 2}" th:if="${page.hasNext} == true">
                     1
                 </a>
             </li>
-            <li class="page-item" th:classappend="${hasNext} == false ? 'disabled' : ''" >
-                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page + 2}|}">
+            <li class="page-item" th:classappend="${page.hasNext} == false ? 'disabled' : ''" >
+                <a href="" class="page-link" th:href="@{|/user?user=${user.id}&page=${page.page + 2}|}">
                     <span>&raquo;</span>
                 </a>
             </li>

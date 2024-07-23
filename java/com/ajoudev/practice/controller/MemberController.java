@@ -1,6 +1,8 @@
 package com.ajoudev.practice.controller;
 
 import com.ajoudev.practice.Comment;
+import com.ajoudev.practice.DTO.MemberDTO;
+import com.ajoudev.practice.DTO.PageDTO;
 import com.ajoudev.practice.Image;
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.Post;
@@ -8,6 +10,7 @@ import com.ajoudev.practice.service.CommentService;
 import com.ajoudev.practice.service.MemberService;
 import com.ajoudev.practice.service.PostBoardService;
 import com.ajoudev.practice.service.PostService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,107 +86,85 @@ public class MemberController {
         return "registerMember";
     }
     @GetMapping("/remove-user")
-    public String remove(HttpSession session) {
-        Member member = memberService.findOne((String) session.getAttribute("id")).get();
+    public String remove(HttpServletRequest request) {
+        Member member = (Member) request.getAttribute("member");
         memberService.deleteMember(member);
         return "redirect:/logout";
     }
 
-    public String editView(HttpSession session, Model model) {
-        Member member = memberService.findOne((String) session.getAttribute("id")).get();
-        model.addAttribute("boards", postBoardService.findBoards());
-        model.addAttribute("member", member);
-        return "editMember";
-    }
-
-
-    public String edit(@RequestParam String name, @RequestParam String pw, HttpSession session, Model model) {
+    public String edit(@RequestParam String name, @RequestParam String pw, Model model, HttpServletRequest request) {
         Member replace = new Member();
         replace.setName(name);
         replace.setPassword(pw);
-        Member origin = memberService.findOne((String) session.getAttribute("id")).get();
+        Member origin = (Member) request.getAttribute("member");
         memberService.editMember(origin, replace);
         return "redirect:/logout";
     }
 
     @GetMapping("/user/list")
-    public String viewMembers(Model model, HttpSession session,@PageableDefault(size = 15) Pageable pageable) {
+    public String viewMembers(Model model, @PageableDefault(size = 15) Pageable pageable) {
         Page<Member> members = memberService.findAll(pageable);
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
-        model.addAttribute("members", members.get());
-        model.addAttribute("boards", postBoardService.findBoards());
-        model.addAttribute("hasPrevious",members.hasPrevious());
-        model.addAttribute("hasNext",members.hasNext());
-        model.addAttribute("page",members.getNumber());
+        PageDTO pageDTO = PageDTO.builder()
+                .members(members.getContent())
+                .page(members.getNumber())
+                .hasPrevious(members.hasPrevious())
+                .hasNext(members.hasNext())
+                .build();
+        model.addAttribute("page", pageDTO);
         return "userList";
     }
-/*
+
     @GetMapping("/user")
-    public String viewMember(@RequestParam(required = false) String user, Model model, HttpSession session) {
-        user = user == null ? (String) session.getAttribute("id") : user;
-        Member member = memberService.findOne(user).get();
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
-        model.addAttribute("user", member);
-        model.addAttribute("boards", postBoardService.findBoards());
-        model.addAttribute("posts", postService.findPosts(member));
-        model.addAttribute("comments", commentService.findComments(member));
-        return "userInfo";
-    }
-*/
-    @GetMapping("/user")
-    public String viewEditMember(Model model, @RequestParam(required = false) String user, HttpSession session,@PageableDefault Pageable pageable) {
-        Member member = memberService.findOne((String) session.getAttribute("id")).get();
-        user = user == null ? (String) session.getAttribute("id") : user;
+    public String viewEditMember(Model model, @RequestParam(required = false) String user, @PageableDefault Pageable pageable, HttpServletRequest request) {
+        user = user == null ? ((Member) request.getAttribute("member")).getId() : user;
         Member u = memberService.findOne(user).get();
         Page<Post> posts = postService.findPosts(u, pageable);
+        PageDTO pageDTO = PageDTO.builder()
+                .posts(posts.getContent())
+                .page(posts.getNumber())
+                .hasPrevious(posts.hasPrevious())
+                .hasNext(posts.hasNext()).build();
         boolean isEdit = false;
         boolean isPost = true;
         model.addAttribute("isEdit", isEdit);
         model.addAttribute("isPost", isPost);
-        model.addAttribute("member", member);
         model.addAttribute("user", u);
-        model.addAttribute("posts", posts.get());
-        model.addAttribute("page", posts.getNumber());
-        model.addAttribute("boards", postBoardService.findBoards());
-        model.addAttribute("hasPrevious",posts.hasPrevious());
-        model.addAttribute("hasNext",posts.hasNext());
+        model.addAttribute("page", pageDTO);
         return "userInfo";
     }
 
     @PostMapping("/user")
-    public String editMember(Model model, HttpSession session,
+    public String editMember(Model model, HttpServletRequest request,
+                             @ModelAttribute MemberDTO memberDTO,
                              @RequestParam(required = false) String attr,
-                             @RequestParam(required = false) String pw,
-                             @RequestParam(required = false) String name,
                              @RequestParam(required = false) String user,
                              @RequestParam(required = false) String list,
-                             @RequestParam(required = false) MultipartFile file,
                              @PageableDefault Pageable pageable) {
-        Member member = memberService.findOne((String) session.getAttribute("id")).get();
-        user = user == null ? (String) session.getAttribute("id") : user;
+        user = user == null ? ((Member) request.getAttribute("member")).getName() : user;
         Member u = memberService.findOne(user).get();
         boolean isEdit = false;
         boolean isPost = true;
-        model.addAttribute("member", member);
-        model.addAttribute("isEdit", isEdit);
-        model.addAttribute("isPost", isPost);
+        PageDTO pageDTO = null;
         model.addAttribute("user", u);
-        model.addAttribute("boards", postBoardService.findBoards());
 
 
         if(list == null || list.equals("게시글")) {
             Page<Post> posts = postService.findPosts(u,pageable);
-            model.addAttribute("posts", posts.get());
-            model.addAttribute("hasPrevious",posts.hasPrevious());
-            model.addAttribute("hasNext",posts.hasNext());
-            model.addAttribute("page", posts.getNumber());
+            pageDTO = PageDTO.builder()
+                    .posts(posts.getContent())
+                    .page(posts.getNumber())
+                    .hasPrevious(posts.hasPrevious())
+                    .hasNext(posts.hasNext()).build();
+            model.addAttribute("page", pageDTO);
         }
         else if (list.equals("댓글")){
             isPost = false;
             Page<Comment> comments = commentService.findComments(u, pageable);
-            model.addAttribute("comments", comments.get());
-            model.addAttribute("hasPrevious",comments.hasPrevious());
-            model.addAttribute("hasNext",comments.hasNext());
+            pageDTO = PageDTO.builder()
+                    .comments(comments.getContent())
+                    .page(comments.getNumber())
+                    .hasPrevious(comments.hasPrevious())
+                    .hasNext(comments.hasNext()).build();
             model.addAttribute("page", comments.getNumber());
         }
 
@@ -193,20 +175,20 @@ public class MemberController {
             Member replace = new Member();
             Image image = null;
             try {
-                if (file != null) {
-                    image = new Image(file.getOriginalFilename(), file.getBytes(), file.getContentType());
+                if (memberDTO.getImage() != null) {
+                    image = new Image(memberDTO.getImage().getOriginalFilename(), memberDTO.getImage().getBytes(), memberDTO.getImage().getContentType());
                     System.out.println("test");
                 }
             }catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             replace.setImage(image);
-            replace.setName(name);
-            replace.setPassword(pw);
-            Member origin = memberService.findOne((String) session.getAttribute("id")).get();
+            replace.setName(memberDTO.getName());
+            replace.setPassword(memberDTO.getPw());
+            Member origin = (Member) request.getAttribute("member");
             memberService.editMember(origin, replace);
         }
-
+        model.addAttribute("page", pageDTO);
         model.addAttribute("isEdit", isEdit);
         model.addAttribute("isPost", isPost);
         return "userInfo";

@@ -1,12 +1,16 @@
 package com.ajoudev.practice.controller;
 
 import com.ajoudev.practice.Comment;
+import com.ajoudev.practice.DTO.CommentDTO;
+import com.ajoudev.practice.DTO.PageDTO;
+import com.ajoudev.practice.DTO.PostDTO;
 import com.ajoudev.practice.Member;
 import com.ajoudev.practice.Post;
 import com.ajoudev.practice.service.CommentService;
 import com.ajoudev.practice.service.MemberService;
 import com.ajoudev.practice.service.PostBoardService;
 import com.ajoudev.practice.service.PostService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,100 +45,85 @@ public class MainController {
     }
 
     @GetMapping("/posts")
-    String posts(@RequestParam(required = false) String board, Model model, HttpSession session, @PageableDefault(page=0, size = 10)Pageable pageable) {
+    String posts(@RequestParam(required = false) String board, Model model, @PageableDefault(page=0, size = 10)Pageable pageable) {
         board = board == null ? "기본" : board;
         Page<Post> posts = postService.findPosts(board, pageable);
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
-        model.addAttribute("boards", postBoardService.findBoards());
-        model.addAttribute("board", postBoardService.findOne(board).get());
-        model.addAttribute("posts", posts);
-        model.addAttribute("page", posts.getNumber());
-        model.addAttribute("hasNext",posts.hasNext());
-        model.addAttribute("hasPrevious",posts.hasPrevious());
+        PageDTO pageDTO = PageDTO.builder()
+                .posts(posts.getContent())
+                .page(posts.getNumber())
+                .hasNext(posts.hasNext())
+                .hasPrevious(posts.hasPrevious())
+                .board(postBoardService.findOne(board).get())
+                .build();
+        model.addAttribute("page", pageDTO);
 
         return "boards";
     }
 
     @GetMapping("/posts/new")
-    String postsNew(Model model, HttpSession session, @RequestParam(required = false) String board) {
-        String id = (String) session.getAttribute("id");
-        model.addAttribute("member", memberService.findOne(id).get());
-        model.addAttribute("boards", postBoardService.findBoards());
+    String postsNew(Model model, @RequestParam(required = false) String board) {
         model.addAttribute("pb", board);
         return "createNewForm";
     }
     @PostMapping("/posts/new")
-    String create(@RequestParam String title,
-                  @RequestParam String textbody,
-                  @RequestParam String board,
-                  HttpSession session, Model model) {
-        Member member = memberService.findOne((String) session.getAttribute("id")).get();
+    String create(@ModelAttribute PostDTO postDTO,
+                  HttpServletRequest request,
+                  Model model) {
         Post post = new Post();
-        post.setMember(member);
-        post.setTitle(title);
-        post.setTextBody(textbody);
-        post.setPostBoard(postBoardService.findOne(board).get());
+        post.setMember((Member) request.getAttribute("member"));
+        post.setTitle(postDTO.getTitle());
+        post.setTextBody(postDTO.getTextBody());
+        post.setPostBoard(postBoardService.findOne(postDTO.getBoard()).get());
         postService.posting(post);
         return "redirect:/posts/" + post.getPostNum();
     }
 
     @GetMapping("/posts/{postNum}")
-    String viewPost(@PathVariable Long postNum, Model model, HttpSession session) {
+    String viewPost(@PathVariable Long postNum, Model model) {
         Post post = postService.findOne(postNum).isPresent() ? postService.findOne(postNum).get() : null;
         if (post == null) return "redirect:/list";
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         model.addAttribute("post", post);
-        model.addAttribute("boards", postBoardService.findBoards());
         if (!commentService.findComments(post).isEmpty()) model.addAttribute("comments", commentService.findComments(post));
         return "viewPost";
     }
 
     @PostMapping("/posts/{postNum}")
     String deletePost(@PathVariable Long postNum,
-                      @RequestParam(required = false) String attr,
-                      @RequestParam(required = false) String title,
-                      @RequestParam(required = false) String textBody,
-                      @RequestParam(required = false) String comment,
-                      @RequestParam(required = false) String board,
-                      @RequestParam(required = false) Long commentNum,
-                      @RequestParam(required = false) String attrComment,
-                      HttpSession session,
+                      @ModelAttribute PostDTO postDTO,
+                      @ModelAttribute CommentDTO commentDTO,
+                      HttpServletRequest request,
                       Model model) {
+        Member member = (Member) request.getAttribute("member");
         Post post = postService.findOne(postNum).isPresent() ? postService.findOne(postNum).get() : null;
-        model.addAttribute("boards", postBoardService.findBoards());
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
         if (post != null) {
             List<Comment> comments = commentService.findComments(post);
             model.addAttribute("comments", comments);
         }
 
-        if (attr != null) {
-            Member member = memberService.findOne((String) session.getAttribute("id")).get();
+        if (postDTO.getAttr() != null) {
             if(!member.equals(post.getMember())) return "redirect:/posts/" + post.getPostNum();
 
-            if (attr.equals("삭제"))
+            if (postDTO.getAttr().equals("삭제"))
                 postService.deletePost(post);
-            else if(attr.equals("수정")) {
+            else if(postDTO.getAttr().equals("수정")) {
                 model.addAttribute("post", post);
                 model.addAttribute("pb", post.getPostBoard().getName());
-                model.addAttribute("boards", postBoardService.findBoards());
                 return "editForm";
             }
-            else if(attr.equals("저장")) {
-                post.setTitle(title);
-                post.setPostBoard(postBoardService.findOne(board).get());
-                post.setTextBody(textBody);
+            else if(postDTO.getAttr().equals("저장")) {
+                post.setTitle(postDTO.getTitle());
+                post.setPostBoard(postBoardService.findOne(postDTO.getBoard()).get());
+                post.setTextBody(postDTO.getTextBody());
                 postService.updatePost(post);
                 model.addAttribute("post", post);
                 return "viewPost";
             }
         }
 
-        if (comment != null) {
-            Member member = memberService.findOne((String) session.getAttribute("id")).get();
+        if (commentDTO.getNewComment() != null) {
             Comment tmp = new Comment();
             tmp.setPost(post);
-            tmp.setCommentBody(comment);
+            tmp.setCommentBody(commentDTO.getNewComment());
             tmp.setMember(member);
             commentService.addComment(tmp);
             model.addAttribute("comments", commentService.findComments(post));
@@ -142,23 +131,22 @@ public class MainController {
             return "viewPost";
         }
 
-        if (attrComment != null) {
-            Member member = memberService.findOne((String) session.getAttribute("id")).get();
-            Comment tmp = commentService.findOne(commentNum).get();
+        if (commentDTO.getAttrComment() != null) {
+            Comment tmp = commentService.findOne(commentDTO.getCommentNum()).get();
 
             if(!member.equals(tmp.getMember())) return "redirect:/posts/" + postNum;
 
-            if (attrComment.equals("삭제")) {
+            if (commentDTO.getAttrComment().equals("삭제")) {
                 commentService.deleteComment(tmp);
             }
 
-            else if (attrComment.equals("수정")) {
+            else if (commentDTO.getAttrComment().equals("수정")) {
                 tmp.setEdit(true);
             }
 
-            else if (attrComment.equals("저장")) {
+            else if (commentDTO.getAttrComment().equals("저장")) {
                 tmp.setEdit(false);
-                tmp.setCommentBody(textBody);
+                tmp.setCommentBody(commentDTO.getComment());
             }
             model.addAttribute("comments", commentService.findComments(post));
             model.addAttribute("post", post);
@@ -168,24 +156,20 @@ public class MainController {
     }
 
     @GetMapping("/list")
-    String viewBoard(Model model, HttpSession session) {
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
-        model.addAttribute("boards", postBoardService.findBoards());
+    String viewBoard(Model model) {
         return "editBoard";
     }
 
     @PostMapping("/list")
     String editBoard(@RequestParam(required = false) String attr,
                      @RequestParam(required = false) String newBoard,
-                     @RequestParam(required = false) String[] board,HttpSession session,Model model) {
+                     @RequestParam(required = false) String[] board, Model model) {
         if(attr != null && attr.equals("추가")) {
             postBoardService.addBoard(newBoard);
         }
         else if(attr != null && attr.equals("삭제")) {
             postBoardService.deleteBoard(board);
         }
-        model.addAttribute("member", memberService.findOne((String) session.getAttribute("id")).get());
-        model.addAttribute("boards", postBoardService.findBoards());
         return "editBoard";
     }
 }

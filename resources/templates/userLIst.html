@@ -66,7 +66,7 @@
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="p-0 h-100 w-100" th:each="member : ${members}">
+                <tr class="p-0 h-100 w-100" th:each="member : ${page.members}">
                     <td class="w-50 h-100">
                         <a href="" class="btn btn-sm p-0 w-100 h-100 m-0" th:href="@{|/user?user=${member.id}|}" th:text="${member.name}"></a>
                     </td>
@@ -81,28 +81,28 @@
 <div class="d-flex justify-content-center">
     <nav aria-label="Page nav">
         <ul class="pagination page-black">
-            <li class="page-item" th:classappend="${hasPrevious} == false ? 'disabled' : ''">
-                <a href="" class="page-link" th:href="@{|/user/list?page=${page}|}">
+            <li class="page-item" th:classappend="${page.hasPrevious} == false ? 'disabled' : ''">
+                <a href="" class="page-link" th:href="@{|/user/list?page=${page.page}|}">
                     <span>&laquo;</span>
                 </a>
             </li>
             <li class="page-item">
-                <a href="" class="page-link" th:href="@{|/user/list?page=${page}|}" th:text="${page}" th:if="${hasPrevious} == true">
+                <a href="" class="page-link" th:href="@{|/user/list?page=${page.page}|}" th:text="${page.page}" th:if="${page.hasPrevious} == true">
                     1
                 </a>
             </li>
             <li class="page-item">
-                <a href="" class="page-link active" th:href="@{|/user/list?page=${page + 1}|}" th:text="${page + 1}">
+                <a href="" class="page-link active" th:href="@{|/user/list?page=${page.page + 1}|}" th:text="${page.page + 1}">
                     1
                 </a>
             </li>
             <li class="page-item">
-                <a href="" class="page-link" th:href="@{|/user/list?page=${page + 2}|}" th:text="${page + 2}" th:if="${hasNext} == true">
+                <a href="" class="page-link" th:href="@{|/user/list?page=${page.page + 2}|}" th:text="${page.page + 2}" th:if="${page.hasNext} == true">
                     1
                 </a>
             </li>
-            <li class="page-item" th:classappend="${hasNext} == false ? 'disabled' : ''" >
-                <a href="" class="page-link" th:href="@{|/user/list?page=${page + 2}|}">
+            <li class="page-item" th:classappend="${page.hasNext} == false ? 'disabled' : ''" >
+                <a href="" class="page-link" th:href="@{|/user/list?page=${page.page + 2}|}">
                     <span>&raquo;</span>
                 </a>
             </li>
