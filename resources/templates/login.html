@@ -14,7 +14,7 @@
         <div class="mb-3 position-relative start-50 translate-middle-x">
             <label for="pw" class="form-label">비밀번호</label>
             <input type="password" class="form-control" id="pw" name="pw" placeholder="PASSWORD" th:classappend="${wrong} == true ? 'is-invalid' : ''" required>
-            <div class="invalid-feedback">중복된 아이디입니다</div>
+            <div class="invalid-feedback">잘못된 아이디 또는 비밀번호를 입력하셨습니다</div>
         </div>
         <a href="/register" class="btn text-dark float-end" role="button">회원가입</a>
         <button type="submit" class="btn btn-dark float-start">로그인</button>

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="container">
+    <nav class="navbar navbar-expand-sm py-0 my-0">
+        <div class="container-fluid d-flex justify-content-end">
+            <div class="dropdown">
+                <button class="btn btn-sm dropdown-toggle border-0" data-bs-toggle="dropdown" type="button" th:text="${member.name}"></button>
+                <ul class="dropdown-menu">
+                    <li><a href="/list" class="dropdown-item small">게시판 수정</a></li>
+                    <li><a href="/user" class="dropdown-item small">회원 정보</a></li>
+                    <li><a href="/remove-user" class="dropdown-item small">회원 탈퇴</a></li>
+                </ul>
+            </div>
+            <a href="/logout" class="btn btn-sm btn-outline-dark">로그아웃</a>
+        </div>
+    </nav>
+    <nav class="navbar bg-body-tertiary navbar-expand-sm mt-1" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a href="/" class="navbar-brand fw-bold">BLOG</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <button class="nav-link dropdown-toggle" data-bs-toggle="dropdown">게시판</button>
+                        <ul class="dropdown-menu">
+                            <li th:each="board:${boards}">
+                                <a href="#" th:href="@{|/posts?board=${board.name}|}" th:text="${board.name}" class="dropdown-item"></a>
+                            </li>
+                            <li>
+                                <a href="/edit-list" class="dropdown-item">게시판 수정</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user">회원</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <form action="/list" method="post">
+        <div class="form-group" th:each="board : ${boards}">
+            <label for="board" th:text="${board.name}"></label>
+            <input type="checkbox" id="board" name="board" th:value="${board.name}">
+        </div>
+        <button type="submit" name="attr" value="삭제">삭제</button>
+        <div class="form-group">
+            <label for="newBoard"></label>
+            <input type="text" id="newBoard" name="newBoard" placeholder="추가할 게시판을 입력하세요">
+        </div>
+        <button type="submit" name="attr" value="추가">추가</button>
+    </form>
+</div> <!-- /container -->
+</body>
+</html>

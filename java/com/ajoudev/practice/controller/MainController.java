@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,8 +38,8 @@ public class MainController {
     }
 
     @GetMapping("/")
-    String home(Model model, HttpSession session) {
-        String id = (String) session.getAttribute("id");
+    String home(Model model) {
+        String id = SecurityContextHolder.getContext().getAuthentication().getName();
         Member member = memberService.findOne(id).get();
         model.addAttribute("member", member);
         return "redirect:/posts";

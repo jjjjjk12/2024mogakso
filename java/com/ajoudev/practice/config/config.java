@@ -1,4 +1,4 @@
-package com.ajoudev.practice;
+package com.ajoudev.practice.config;
 
 import com.ajoudev.practice.interceptor.LoginInterceptor;
 import com.ajoudev.practice.interceptor.MemberInterceptor;
@@ -16,11 +16,11 @@ public class config implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        String[] excludeNavBarUrl = {"/logout", "/login"};
+        String[] excludeNavBarUrl = {"/logout", "/login", "/register"};
 
-        registry.addInterceptor(loginInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns("/logout");
+//        registry.addInterceptor(loginInterceptor)
+//                .addPathPatterns("/**")
+//                .excludePathPatterns("/logout");
 
         registry.addInterceptor(memberInterceptor)
                 .excludePathPatterns(excludeNavBarUrl);

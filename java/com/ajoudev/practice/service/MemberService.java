@@ -5,6 +5,7 @@ import com.ajoudev.practice.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +18,17 @@ import java.util.Optional;
 @Transactional
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public MemberService(MemberRepository memberRepository) {
+    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.memberRepository = memberRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public boolean addMember(Member member) {
         if (!validateDuplicateMember(member)) {
             member.setSalt(getSalt());
-            member.setPassword(sha256(member.getPassword(), member.getSalt()));
+            member.setPassword(bCryptPasswordEncoder.encode(member.getPassword()));
             memberRepository.save(member);
             return true;
         }
@@ -41,10 +44,11 @@ public class MemberService {
     }
 
     public void editMember(Member origin, Member replace) {
-        if (replace.getImage() != null) origin.setImage(replace.getImage());
+        origin = memberRepository.findById(origin.getId()).get();
+        if (replace.getImage().getImageFile().length > 0) origin.setImage(replace.getImage());
         origin.setName(replace.getName());
         origin.setSalt(getSalt());
-        origin.setPassword(sha256(replace.getPassword(), origin.getSalt()));
+        origin.setPassword(bCryptPasswordEncoder.encode(replace.getPassword()));
         //memberRepository.update(origin);
     }
 

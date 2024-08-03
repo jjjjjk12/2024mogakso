@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -38,13 +39,12 @@ public class MemberController {
     }
 
     @GetMapping("/login")
-    public String viewLogin(Model model) {
-        boolean wrong = false;
+    public String viewLogin(Model model, @RequestParam(required = false) String error) {
+        Boolean wrong = error != null && error.equals("true");
         model.addAttribute("wrong", wrong);
         return "login";
     }
 
-    @PostMapping("/login")
     public String doLogin(@RequestParam String id, @RequestParam String pw, HttpSession httpSession, Model model) {
         boolean wrong = true;
         Member member = new Member();
@@ -140,12 +140,16 @@ public class MemberController {
                              @RequestParam(required = false) String user,
                              @RequestParam(required = false) String list,
                              @PageableDefault Pageable pageable) {
-        user = user == null ? ((Member) request.getAttribute("member")).getName() : user;
+        System.out.println(user);
+        user = user == null ? ((Member) request.getAttribute("member")).getId() : user;
+        System.out.println("---------------");
+        System.out.println(user);
+        System.out.println("----------------");
+        System.out.println(memberDTO.getName());
         Member u = memberService.findOne(user).get();
         boolean isEdit = false;
         boolean isPost = true;
         PageDTO pageDTO = null;
-        model.addAttribute("user", u);
 
 
         if(list == null || list.equals("게시글")) {
@@ -177,7 +181,6 @@ public class MemberController {
             try {
                 if (memberDTO.getImage() != null) {
                     image = new Image(memberDTO.getImage().getOriginalFilename(), memberDTO.getImage().getBytes(), memberDTO.getImage().getContentType());
-                    System.out.println("test");
                 }
             }catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -185,9 +188,13 @@ public class MemberController {
             replace.setImage(image);
             replace.setName(memberDTO.getName());
             replace.setPassword(memberDTO.getPw());
+            System.out.println(replace.getName());
             Member origin = (Member) request.getAttribute("member");
             memberService.editMember(origin, replace);
+            u = memberService.findOne(user).get();
+            System.out.println(u.getName().equals(memberDTO.getName()));
         }
+        model.addAttribute("user", u);
         model.addAttribute("page", pageDTO);
         model.addAttribute("isEdit", isEdit);
         model.addAttribute("isPost", isPost);

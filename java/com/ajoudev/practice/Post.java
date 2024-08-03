@@ -16,7 +16,8 @@ public class Post {
     private Long postNum;
     @Column
     private String title;
-    @Column(name = "textbody")
+    @Lob
+    @Column(name = "textbody", columnDefinition = "LONGTEXT")
     private String textBody;
     @ManyToOne
     @JoinColumn(name = "name")
